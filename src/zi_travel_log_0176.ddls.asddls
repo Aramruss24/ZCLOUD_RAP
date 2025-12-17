@@ -7,6 +7,9 @@
 define root view ZI_TRAVEL_LOG_0176
   as select from ztb_travel_0176 as Travel
   composition [0..*] of ZI_BOOKING_0176 as _Booking
+  association [0..1] to /DMO/I_Agency as _Agency on $projection.AgencyId = _Agency.AgencyID
+  association [0..1] to /DMO/I_Customer as _Customer on $projection.CustomerId = _Customer.CustomerID
+  association [0..1] to I_Currency as _Currency on $projection.CurrencyCode = _Currency.Currency
 {
   key travel_id       as TravelId,
       agency_id       as AgencyId,
@@ -29,5 +32,8 @@ define root view ZI_TRAVEL_LOG_0176
       last_changed_by as LastChangedBy,
       @Semantics.systemDateTime.lastChangedAt: true
       last_changed_at as LastChangedAt,
-      _Booking
+      _Booking,
+      _Agency,
+      _Customer,
+      _Currency
 }
