@@ -1,0 +1,35 @@
+@Metadata.layer: #CORE
+@Search.searchable: true
+@UI: { 
+    headerInfo: { 
+        typeName: 'Travel',
+        typeNamePlural: 'Travels',
+        title: { 
+            type: #STANDARD,
+            value: 'TravelID'    
+        }
+     }
+ }
+annotate view ZC_ATRAV_LOG_0176
+    with 
+{
+   @UI.facet: [{ id: 'Travel', 
+                 purpose: #STANDARD, 
+                 type: #IDENTIFICATION_REFERENCE, 
+                 label: 'Travel',
+                 position: 10 },
+               { id: 'Booking',
+                 purpose: #STANDARD,
+                 type: #LINEITEM_REFERENCE,
+                 label: 'Booking',
+                 position: 20,
+                 targetElement: '_Booking' }   
+              ]
+   @UI:{ 
+    lineItem: [{ position: 10, exclude: true, hidden: true, importance: #HIGH }],
+    identification: [{ position: 10, label: 'Travel ID [1,...,999]' }]
+    }
+   @Search.defaultSearchElement: true
+   TravelID;
+    
+}

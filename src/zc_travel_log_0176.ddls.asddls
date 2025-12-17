@@ -1,6 +1,7 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Consumption - Travel'
 @Metadata.ignorePropagatedAnnotations: true
+@Metadata.allowExtensions: true
 define root view entity ZC_TRAVEL_LOG_0176
   as projection on ZI_TRAVEL_LOG_0176
 {
@@ -23,7 +24,7 @@ define root view entity ZC_TRAVEL_LOG_0176
       last_changed_at as LastChangedAt,
       /* Associations */
       _Agency,
-      _Booking,
+      _Booking : redirected to composition child ZC_BOOKING_0176,
       _Currency,
       _Customer
 }

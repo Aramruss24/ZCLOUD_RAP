@@ -1,6 +1,7 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Consumption - Booking Approval'
 @Metadata.ignorePropagatedAnnotations: true
+@Metadata.allowExtensions: true
 define view entity ZC_ABOOK_LOG_0176
   as projection on ZI_BOOKING_0176
 {
@@ -18,7 +19,7 @@ define view entity ZC_ABOOK_LOG_0176
       booking_status  as BookingStatus,
       last_changed_at as LastChagedAt,
       /* Associations */
-      _Travel,
+      _Travel : redirected to parent ZC_ATRAV_LOG_0176,
       _Customer,
       _Carrier
       

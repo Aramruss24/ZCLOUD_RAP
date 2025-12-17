@@ -1,0 +1,24 @@
+@Metadata.layer: #CORE
+@Search.searchable: true
+@UI: { 
+    headerInfo: { 
+        typeName: 'Booking',
+        typeNamePlural: 'Bookings',
+        title: { 
+            type: #STANDARD,
+            value: 'BookingID'    
+        }
+     }
+ }
+annotate view ZC_ABOOK_LOG_0176
+    with 
+{
+   @UI.facet: [{ id: 'Booking', 
+                 purpose: #STANDARD, 
+                 type: #IDENTIFICATION_REFERENCE, 
+                 label: 'Booking',
+                 position: 10 }]
+   @Search.defaultSearchElement: true 
+    TravelID;
+    
+}
