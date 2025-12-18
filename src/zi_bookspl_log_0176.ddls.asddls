@@ -20,6 +20,8 @@ define view ZI_BOOKSPL_LOG_0176
       price,
       @Semantics.currencyCode: true
       currency_code,
+      @Semantics.systemDateTime.lastChangedAt: true
+      _Travel.last_changed_at,
       _Booking,
       _Travel,
       _Product,

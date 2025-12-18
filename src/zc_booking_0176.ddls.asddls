@@ -9,7 +9,9 @@ define view entity ZC_BOOKING_0176
   key booking_id      as BookingID,
       booking_date    as BookingDate,
       customer_id     as CustomerID,
+      @ObjectModel.text.element: [ 'CarrierName' ]
       carrier_id      as CarrierID,
+      _Carrier.Name   as CarrierName,
       connection_id   as ConnectionID,
       flight_date     as FlightDate,
       @Semantics.amount.currencyCode: 'CurrencyCode'
