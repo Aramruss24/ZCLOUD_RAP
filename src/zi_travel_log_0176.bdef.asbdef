@@ -1,0 +1,41 @@
+managed implementation in class zbp_i_travel_log_0176 unique;
+//strict ( 2 ); //Uncomment this line in order to enable strict mode 2. The strict mode has two variants (strict(1), strict(2)) and is prerequisite to be future proof regarding syntax and to be able to release your BO.
+
+define behavior for ZI_TRAVEL_LOG_0176 alias Travel//alias <alias_name>
+persistent table ztb_travel_0176
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create ( authorization : global );
+  update;
+  delete;
+  field ( readonly ) travel_id;
+  association _Booking { create; }
+}
+
+define behavior for ZI_BOOKING_0176 alias Booking//alias <alias_name>
+persistent table ztb_booking_0176
+lock dependent by _Travel
+authorization dependent by _Travel
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( readonly ) travel_id, booking_id;
+  association _Travel;
+  association _BookingSupplement { create; }
+}
+
+define behavior for ZI_BOOKSPL_LOG_0176 alias Supplement//alias <alias_name>
+with unmanaged save
+lock dependent by _Travel
+authorization dependent by _Travel
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( readonly ) travel_id, booking_id, booking_suplement_id;
+  association _Travel;
+  association _Booking;
+}
