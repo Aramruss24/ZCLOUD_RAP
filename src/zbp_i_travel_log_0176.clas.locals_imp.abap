@@ -45,6 +45,18 @@ CLASS lhc_Travel IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD createTravelByTemplate.
+
+    READ ENTITIES OF zi_travel_log_0176
+    ENTITY Travel
+    FIELDS ( travel_id agency_id customer_id booking_fee total_price currency_code )
+    WITH VALUE #( FOR row_key IN keys ( %key = row_key-%key ) )
+    RESULT DATA(lt_entity_travel)
+    FAILED failed
+    REPORTED reported.
+
+
+    CHECK failed IS INITIAL.
+
   ENDMETHOD.
 
   METHOD rejectTravel.
