@@ -52,6 +52,23 @@ CLASS lhc_Travel IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_authorizations.
+
+    DATA(lv_auth) = COND #( WHEN cl_abap_context_info=>get_user_technical_name( ) EQ 'CB9980000176' THEN if_abap_behv=>auth-allowed
+                            ELSE if_abap_behv=>auth-unauthorized ).
+
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<fs_keys>).
+
+        result = VALUE #( ( %key = <fs_keys>-%key
+                            %op-%update = lv_auth
+                            %delete = lv_auth
+                            %action-acceptTravel = lv_auth
+                            %action-rejectTravel = lv_auth
+                            %action-createTravelByTemplate = lv_auth
+                            %assoc-_Booking = lv_auth
+                         ) ).
+
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD get_global_authorizations.
@@ -76,6 +93,15 @@ CLASS lhc_Travel IMPLEMENTATION.
     RESULT DATA(lt_travel).
 
     result = VALUE #( FOR ls_travel IN lt_travel ( travel_id = ls_travel-travel_id %param = ls_travel ) ).
+
+    LOOP AT lt_travel ASSIGNING FIELD-SYMBOL(<fs_travel>).
+          APPEND VALUE #( travel_id = <fs_travel>-travel_id %msg = new_message( id = 'ZMC_TRAVEL_0176'
+                                                                               number = '005'
+                                                                               v1 = <fs_travel>-travel_id
+                                                                               severity = if_abap_behv_message=>severity-success )
+                                                                               %element-customer_id = if_abap_behv=>mk-on
+                                                                                ) TO reported-travel.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -149,6 +175,14 @@ CLASS lhc_Travel IMPLEMENTATION.
 
     result = VALUE #( FOR ls_travel IN lt_travel ( travel_id = ls_travel-travel_id %param = ls_travel ) ).
 
+    LOOP AT lt_travel ASSIGNING FIELD-SYMBOL(<fs_travel>).
+          APPEND VALUE #( travel_id = <fs_travel>-travel_id %msg = new_message( id = 'ZMC_TRAVEL_0176'
+                                                                               number = '006'
+                                                                               v1 = <fs_travel>-travel_id
+                                                                               severity = if_abap_behv_message=>severity-success )
+                                                                               %element-customer_id = if_abap_behv=>mk-on
+                                                                                ) TO reported-travel.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -192,6 +226,12 @@ CLASS lhc_Travel IMPLEMENTATION.
 
   METHOD validateStatus.
 
+    DATA: lr_status TYPE RANGE OF /dmo/overall_status.
+
+    lr_status = VALUE #( ( sign = 'I' option = 'EQ' low = 'O' )
+                         ( sign = 'I' option = 'EQ' low = 'X' )
+                         ( sign = 'I' option = 'EQ' low = 'A' ) ).
+
     READ ENTITIES OF zi_travel_log_0176 IN LOCAL MODE
     ENTITY Travel
     FIELDS ( overall_status )
@@ -200,7 +240,7 @@ CLASS lhc_Travel IMPLEMENTATION.
 
     LOOP AT lt_travel ASSIGNING FIELD-SYMBOL(<fs_travel>).
 
-        IF <fs_travel>-overall_status NE 'O'.
+        IF <fs_travel>-overall_status NOT IN lr_status.
 
         APPEND VALUE #( %key = <fs_travel>-%key ) TO failed-travel.
 
@@ -266,17 +306,117 @@ CLASS lhc_Travel IMPLEMENTATION.
 ENDCLASS.
 
 CLASS lsc_ZI_TRAVEL_LOG_0176 DEFINITION INHERITING FROM cl_abap_behavior_saver.
+
   PROTECTED SECTION.
 
     METHODS save_modified REDEFINITION.
 
     METHODS cleanup_finalize REDEFINITION.
 
+  PRIVATE SECTION.
+
+    CONSTANTS: BEGIN OF gtc_operation,
+                 create TYPE string VALUE 'CREATE',
+                 update TYPE string VALUE 'UPDATE',
+                 delete TYPE string VALUE 'DELETE',
+               END OF gtc_operation.
+
+
 ENDCLASS.
 
 CLASS lsc_ZI_TRAVEL_LOG_0176 IMPLEMENTATION.
 
   METHOD save_modified.
+
+    DATA: lt_travel_log TYPE TABLE OF ztb_log_0176,
+          lt_travel_log_u TYPE TABLE OF ztb_log_0176.
+
+    DATA(lv_user) = cl_abap_context_info=>get_user_technical_name( ).
+
+   IF NOT create-travel IS INITIAL.
+
+    lt_travel_log = CORRESPONDING #( create-travel ).
+
+    LOOP AT lt_travel_log ASSIGNING FIELD-SYMBOL(<fs_travel_log>).
+
+        GET TIME STAMP FIELD <fs_travel_log>-created_at.
+        <fs_travel_log>-changing_operation = gtc_operation-create.
+
+        READ TABLE create-travel WITH TABLE KEY entity COMPONENTS travel_id = <fs_travel_log>-travel_id
+        INTO DATA(ls_travel).
+
+        IF sy-subrc EQ 0.
+
+            IF ls_travel-%control-booking_fee EQ cl_abap_behv=>flag_changed.
+                <fs_travel_log>-changed_field_name = 'booking_fee'.
+                <fs_travel_log>-changed_value      = ls_travel-booking_fee.
+                <fs_travel_log>-user_mod           = lv_user.
+                TRY.
+                <fs_travel_log>-change_id          = cl_system_uuid=>create_uuid_x16_static(  ).
+                CATCH cx_uuid_error.
+                ENDTRY.
+                APPEND <fs_travel_log> TO lt_travel_log_u.
+            ENDIF.
+
+        ENDIF.
+
+    ENDLOOP.
+
+   ENDIF.
+
+   IF NOT update-travel IS INITIAL.
+
+    lt_travel_log = CORRESPONDING #( update-travel ).
+
+    LOOP AT update-travel ASSIGNING FIELD-SYMBOL(<fs_travel_update>).
+
+        ASSIGN lt_travel_log[ travel_id = <fs_travel_update>-travel_id ] TO FIELD-SYMBOL(<ls_travel_log_bd>).
+
+        GET TIME STAMP FIELD <ls_travel_log_bd>-created_at.
+        <ls_travel_log_bd>-changing_operation = gtc_operation-update.
+
+        IF <fs_travel_update>-%control-customer_id = cl_abap_behv=>flag_changed.
+
+            <ls_travel_log_bd>-changed_field_name = 'customer_id'.
+            <ls_travel_log_bd>-changed_value      = <fs_travel_update>-customer_id.
+            <ls_travel_log_bd>-user_mod           = lv_user.
+            TRY.
+             <ls_travel_log_bd>-change_id          = cl_system_uuid=>create_uuid_x16_static(  ).
+            CATCH cx_uuid_error.
+            ENDTRY.
+            APPEND <ls_travel_log_bd> TO lt_travel_log_u.
+
+        ENDIF.
+
+    ENDLOOP.
+
+   ENDIF.
+
+
+   IF NOT delete-travel IS INITIAL.
+
+    lt_travel_log = CORRESPONDING #( delete-travel ).
+
+    LOOP AT lt_travel_log ASSIGNING FIELD-SYMBOL(<fs_travel_delete>).
+
+        GET TIME STAMP FIELD <fs_travel_delete>-created_at.
+        <fs_travel_delete>-changing_operation = gtc_operation-delete.
+        <fs_travel_delete>-user_mod           = lv_user.
+        TRY.
+         <fs_travel_delete>-change_id          = cl_system_uuid=>create_uuid_x16_static(  ).
+        CATCH cx_uuid_error.
+        ENDTRY.
+        APPEND <fs_travel_delete> TO lt_travel_log_u.
+    ENDLOOP.
+
+   ENDIF.
+
+   IF NOT lt_travel_log_u IS INITIAL.
+
+    insert ztb_log_0176 FROM TABLE @lt_travel_log_u.
+
+   ENDIF.
+
   ENDMETHOD.
 
   METHOD cleanup_finalize.
