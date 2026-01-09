@@ -23,6 +23,9 @@ define root view entity ZC_TRAVEL_LOG_0176
       description        as Description,
       overall_status     as OverallStatus,
       last_changed_at    as LastChangedAt,
+      @Semantics.amount.currencyCode: 'CurrencyCode'
+      @ObjectModel.virtualElementCalculatedBy: 'ABAP:ZCL_VIRT_ELEM_0176'
+      virtual DiscountPrice : /dmo/total_price,
       /* Associations */
       _Agency,
       _Booking : redirected to composition child ZC_BOOKING_0176,
