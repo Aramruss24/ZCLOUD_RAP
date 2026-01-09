@@ -40,6 +40,7 @@ CLASS zcl_inser_data_log_0176 IMPLEMENTATION.
     WHERE travel_id EQ @lt_travel-travel_id
     INTO CORRESPONDING FIELDS OF TABLE
     @lt_booking.
+
     SELECT * FROM /dmo/book_suppl
     FOR ALL ENTRIES IN @lt_booking
     WHERE travel_id EQ @lt_booking-travel_id
