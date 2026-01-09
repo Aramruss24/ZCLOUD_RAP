@@ -31,7 +31,8 @@ CLASS zcl_aux_travel_del_0176 IMPLEMENTATION.
 
     READ ENTITIES OF zi_travel_log_0176
          ENTITY Travel
-         FROM VALUE #( FOR lv_travel_id IN it_travel_id ( travel_id = lv_travel_id ) )
+         FIELDS ( travel_id currency_code )
+         WITH VALUE #( FOR lv_travel_id IN it_travel_id ( travel_id = lv_travel_id ) )
          RESULT DATA(lt_read_travel).
 
     READ ENTITIES OF zi_travel_log_0176
@@ -81,6 +82,7 @@ CLASS zcl_aux_travel_del_0176 IMPLEMENTATION.
      READ ENTITIES OF zi_travel_log_0176
          ENTITY Booking BY \_BookingSupplement
          FROM VALUE #( FOR ls_travel IN lt_read_booking ( travel_id = ls_travel-travel_id
+                                                          booking_id = ls_travel-booking_id
                                                           %control-price = if_abap_behv=>mk-on
                                                           %control-currency_code = if_abap_behv=>mk-on ) )
          RESULT DATA(lt_read_supplements).

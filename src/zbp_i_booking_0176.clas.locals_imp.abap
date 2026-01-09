@@ -12,6 +12,13 @@ ENDCLASS.
 CLASS lhc_Booking IMPLEMENTATION.
 
   METHOD calculateTotalFlightPrice.
+
+  IF NOT keys IS INITIAL.
+    zcl_aux_travel_del_0176=>calculate_price( it_travel_id = VALUE #( FOR GROUPS <booking> OF booking_keys IN keys
+                                                                      GROUP BY booking_keys-travel_id WITHOUT MEMBERS ( <booking> )
+                                                                        ) ).
+  ENDIF.
+
   ENDMETHOD.
 
   METHOD validateStatus.

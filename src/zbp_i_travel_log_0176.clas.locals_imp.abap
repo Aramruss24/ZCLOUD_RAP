@@ -34,7 +34,7 @@ CLASS lhc_Travel IMPLEMENTATION.
 
   METHOD get_instance_features.
 
-    READ ENTITIES OF zi_travel_log_0176
+    READ ENTITIES OF zi_travel_log_0176 IN LOCAL MODE
     ENTITY Travel
     FIELDS ( travel_id overall_status )
     WITH VALUE #( FOR key_row1 IN keys ( %key = key_row1-%key ) )
@@ -43,6 +43,7 @@ CLASS lhc_Travel IMPLEMENTATION.
     result = VALUE #( FOR ls_travel IN lt_travel_result
     ( %key = ls_travel-%key %field-travel_id = if_abap_behv=>fc-f-read_only
       %field-overall_status = if_abap_behv=>fc-f-read_only
+      %assoc-_Booking = if_abap_behv=>fc-o-enabled
       %action-acceptTravel = cond #( when ls_travel-overall_status = 'A' then if_abap_behv=>fc-o-disabled
                                      else if_abap_behv=>fc-o-enabled )
       %action-rejectTravel = cond #( when ls_travel-overall_status = 'X' then if_abap_behv=>fc-o-disabled
