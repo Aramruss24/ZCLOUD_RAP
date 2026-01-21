@@ -82,6 +82,67 @@ CLASS lhc_HCMMaster IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD update.
+
+    GET TIME STAMP FIELD DATA(lv_time_stamp).
+    DATA(lv_uname) = cl_abap_context_info=>get_user_technical_name( ).
+
+    SELECT FROM zhcm_master_0176 FIELDS *
+        FOR ALL ENTRIES IN @entities
+        WHERE e_number EQ @entities-e_number
+        INTO TABLE @DATA(lt_data_db_update).
+
+    LOOP AT entities INTO DATA(ls_entities).
+
+      ls_entities-%data-lchg_date_time = lv_time_stamp.
+      ls_entities-%data-lchg_uname     = lv_uname.
+
+      DATA(ls_data_db_update) = lt_data_db_update[ e_number = ls_entities-e_number ].
+
+      INSERT VALUE #( flag = lcl_buffer=>gsc_operation-update
+                      data = VALUE #( e_number     = ls_data_db_update-e_number
+                                      e_name       = COND #( WHEN ls_entities-%control-e_name = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-e_name
+                                                             ELSE ls_data_db_update-e_name )
+                                      e_department = COND #( WHEN ls_entities-%control-e_department = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-e_department
+                                                             ELSE ls_data_db_update-e_department )
+                                      status       = COND #( WHEN ls_entities-%control-status = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-status
+                                                             ELSE ls_data_db_update-status )
+                                      job_title    = COND #( WHEN ls_entities-%control-job_title = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-job_title
+                                                             ELSE ls_data_db_update-job_title )
+                                      start_date   = COND #( WHEN ls_entities-%control-start_date = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-start_date
+                                                             ELSE ls_data_db_update-start_date )
+                                      end_date     = COND #( WHEN ls_entities-%control-end_date = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-end_date
+                                                             ELSE ls_data_db_update-end_date )
+                                      email        = COND #( WHEN ls_entities-%control-email = if_abap_behv=>mk-on
+                                                            THEN ls_entities-%data-email
+                                                            ELSE ls_data_db_update-email )
+                                      m_number     = COND #( WHEN ls_entities-%control-m_number = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-m_number
+                                                             ELSE ls_data_db_update-m_number )
+                                      m_name       = COND #( WHEN ls_entities-%control-m_name = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-m_name
+                                                             ELSE ls_data_db_update-m_name )
+                                      m_department = COND #( WHEN ls_entities-%control-m_department = if_abap_behv=>mk-on
+                                                             THEN ls_entities-%data-m_department
+                                                             ELSE ls_data_db_update-m_department )
+                                      crea_date_time = ls_data_db_update-crea_date_time
+                                      crea_uname     = ls_data_db_update-crea_uname
+                                                 ) ) INTO TABLE lcl_buffer=>mt_buffer_master.
+
+      IF NOT ls_entities-e_number IS INITIAL.
+
+        INSERT VALUE #( %cid     = ls_entities-e_number
+                        e_number = ls_entities-e_number
+                        ) INTO TABLE mapped-hcmmaster.
+      ENDIF.
+
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD delete.
@@ -120,7 +181,8 @@ CLASS lsc_ZI_HCM_MASTER_0176 IMPLEMENTATION.
 
   METHOD save.
 
-    DATA: lt_data_created TYPE TABLE OF zhcm_master_0176.
+    DATA: lt_data_created TYPE TABLE OF zhcm_master_0176,
+          lt_data_update  TYPE TABLE OF zhcm_master_0176.
 
     lt_data_created = VALUE #( FOR <fs_row> IN lcl_buffer=>mt_buffer_master
                        WHERE ( flag = lcl_buffer=>gsc_operation-create ) ( <fs_row>-data ) ).
@@ -128,6 +190,15 @@ CLASS lsc_ZI_HCM_MASTER_0176 IMPLEMENTATION.
     IF NOT lt_data_created IS INITIAL.
 
       INSERT zhcm_master_0176 FROM TABLE @lt_data_created.
+
+    ENDIF.
+
+    lt_data_update = VALUE #( FOR <fs_row> IN lcl_buffer=>mt_buffer_master
+                       WHERE ( flag = lcl_buffer=>gsc_operation-update ) ( <fs_row>-data ) ).
+
+    IF NOT lt_data_update IS INITIAL.
+
+      UPDATE zhcm_master_0176 FROM TABLE @lt_data_update.
 
     ENDIF.
 
