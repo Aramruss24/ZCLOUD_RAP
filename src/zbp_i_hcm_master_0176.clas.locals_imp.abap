@@ -146,6 +146,20 @@ CLASS lhc_HCMMaster IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD delete.
+
+    LOOP AT keys INTO DATA(ls_keys).
+
+       INSERT VALUE #( flag = lcl_buffer=>gsc_operation-delete
+                       data = VALUE #( e_number = ls_keys-e_number )
+                       ) INTO TABLE lcl_buffer=>mt_buffer_master.
+
+       IF NOT ls_keys-e_number IS INITIAL.
+        INSERT VALUE #( %cid = ls_keys-%key-e_number
+                        e_number = ls_keys-%key-e_number ) INTO TABLE mapped-hcmmaster.
+       ENDIF.
+
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD read.
@@ -182,7 +196,8 @@ CLASS lsc_ZI_HCM_MASTER_0176 IMPLEMENTATION.
   METHOD save.
 
     DATA: lt_data_created TYPE TABLE OF zhcm_master_0176,
-          lt_data_update  TYPE TABLE OF zhcm_master_0176.
+          lt_data_updated  TYPE TABLE OF zhcm_master_0176,
+          lt_data_deleted  TYPE TABLE OF zhcm_master_0176.
 
     lt_data_created = VALUE #( FOR <fs_row> IN lcl_buffer=>mt_buffer_master
                        WHERE ( flag = lcl_buffer=>gsc_operation-create ) ( <fs_row>-data ) ).
@@ -193,12 +208,21 @@ CLASS lsc_ZI_HCM_MASTER_0176 IMPLEMENTATION.
 
     ENDIF.
 
-    lt_data_update = VALUE #( FOR <fs_row> IN lcl_buffer=>mt_buffer_master
+    lt_data_updated = VALUE #( FOR <fs_row> IN lcl_buffer=>mt_buffer_master
                        WHERE ( flag = lcl_buffer=>gsc_operation-update ) ( <fs_row>-data ) ).
 
-    IF NOT lt_data_update IS INITIAL.
+    IF NOT lt_data_updated IS INITIAL.
 
-      UPDATE zhcm_master_0176 FROM TABLE @lt_data_update.
+      UPDATE zhcm_master_0176 FROM TABLE @lt_data_updated.
+
+    ENDIF.
+
+     lt_data_deleted = VALUE #( FOR <fs_row> IN lcl_buffer=>mt_buffer_master
+                       WHERE ( flag = lcl_buffer=>gsc_operation-delete ) ( <fs_row>-data ) ).
+
+    IF NOT lt_data_deleted IS INITIAL.
+
+      DELETE zhcm_master_0176 FROM TABLE @lt_data_deleted.
 
     ENDIF.
 
