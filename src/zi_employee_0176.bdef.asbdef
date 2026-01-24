@@ -1,14 +1,17 @@
-managed; // implementation in class zbp_i_employee_0176 unique;
+managed implementation in class zbp_i_employee_0176 unique;
+with draft;
 //strict ( 2 ); //Uncomment this line in order to enable strict mode 2. The strict mode has two variants (strict(1), strict(2)) and is prerequisite to be future proof regarding syntax and to be able to release your BO.
 
 define behavior for ZI_EMPLOYEE_0176 alias Employee //alias <alias_name>
 persistent table ztb_employe_0176
+draft table ztb_emplo_0176_d
 lock master
 //authorization master ( instance )
-//etag master <field_name>
+total etag lchg_date_time
+etag master lchg_date_time
 {
   create ( authorization : global );
   update;
   delete;
-  field ( readonly ) e_number;
+  field ( readonly, numbering : managed ) e_number;
 }

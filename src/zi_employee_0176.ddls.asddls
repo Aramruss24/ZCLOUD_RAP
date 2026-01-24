@@ -21,5 +21,5 @@ define root view ZI_EMPLOYEE_0176
       crea_date_time,
       crea_uname,
       lchg_date_time,
-      lchg_uname     
+      lchg_uname  
 }
